@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Library Login</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial;
+            background-color: #f4f6f8;
+        }
+
+        /* NAVBAR */
+        .navbar {
+            background-color: #1e293b;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 20px;
+        }
+
+        /* LOGIN BOX */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 80px;
+        }
+
+        form {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 300px;
+            text-align: center;
+        }
+
+        input {
+            padding: 10px;
+            width: 90%;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            padding: 10px;
+            width: 100%;
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        a {
+            display: block;
+            margin-top: 10px;
+            color: #2563eb;
+            text-decoration: none;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <div class="navbar">
+        📚 Library System
+    </div>
+
+    <div class="login-container">
+        <form action="books.html">
+            <h2>Login</h2>
+
+            <input type="text" name="username" placeholder="Username" required>
+
+            <input type="password" name="password" placeholder="Password" required>
+
+            <button type="submit">Login</button>
+
+            <a href="register.html">Create an account</a>
+            <a href="books.html">Browse Books</a>
+        </form>
+    </div>
+
+</body>
+</html>
