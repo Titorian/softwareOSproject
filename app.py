@@ -12,7 +12,6 @@ app.secret_key = "simplekey"
 
 #connects to TJ's code
 def connect_db():
-
     return sqlite3.connect("library.db")
 
 
@@ -22,7 +21,7 @@ def login():
 
     #retrieves the input data of user such as their chosem username and password
     username = request.form["username"]
-    password = request.form["password"]
+    password = request.form["passwords"]
 
     #connects to TJ's code
     db = connect_db()
@@ -59,7 +58,7 @@ def register():
 
     #user input
     username = request.form["username"]
-    password = request.form["password"]
+    password = request.form["passwords"]
 
     #hash the password
     hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
