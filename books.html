@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Library Dashboard</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial;
+            background-color: #f4f6f8;
+        }
+
+        /* NAVBAR */
+        .navbar {
+            background-color: #1e293b;
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            margin-left: 15px;
+        }
+
+        /* CONTAINER */
+        .container {
+            padding: 30px;
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        /* TABLE */
+        table {
+            width: 80%;
+            margin: auto;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th {
+            background-color: #1e293b;
+            color: white;
+            padding: 12px;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            text-align: center;
+        }
+
+        tr:hover {
+            background-color: #f1f5f9;
+        }
+
+        /* BUTTONS */
+        button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .checkout {
+            background-color: #2563eb;
+            color: white;
+        }
+
+        .return {
+            background-color: #16a34a;
+            color: white;
+        }
+
+        /* SEARCH BAR */
+        .search {
+            display: block;
+            margin: 20px auto;
+            padding: 10px;
+            width: 300px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <div class="navbar">
+        <div><strong>📚 Library System</strong></div>
+        <div>
+            <a href="index.html">Home</a>
+            <a href="#">My Books</a>
+            <a href="index.html">Logout</a>
+        </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="container">
+
+        <h2>Available Books</h2>
+
+        <!-- SEARCH BAR -->
+        <input class="search" type="text" placeholder="Search books...">
+
+        <!-- TABLE -->
+        <table>
+            <tr>
+                <th>Book Title</th>
+                <th>Author</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+
+            <tr>
+                <td>Cybersecurity Fundamentals</td>
+                <td>Dr. Ruth Agada</td>
+                <td>Available</td>
+                <td><button class="checkout">Checkout</button></td>
+            </tr>
+
+            <tr>
+                <td>Database Systems</td>
+                <td>Fletcher Baccus</td>
+                <td>Available</td>
+                <td><button class="checkout">Checkout</button></td>
+            </tr>
+
+            <tr>
+                <td>Intro to Programming</td>
+                <td>Titorian Huggins</td>
+                <td>Checked Out</td>
+                <td><button class="return">Return</button></td>
+            </tr>
+
+        </table>
+
+    </div>
+
+</body>
+</html>
