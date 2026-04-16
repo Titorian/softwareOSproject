@@ -12,7 +12,7 @@ app.secret_key = "simplekey"
 
 #connects to TJ's code
 def connect_db():
-    return sqlite3.connect("library.db")
+    return sqlite3.connect("usernmaes_pass_database")
 
 
 #log in
