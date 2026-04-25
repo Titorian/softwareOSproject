@@ -25,10 +25,10 @@ cursor.execute("INSERT INTO login (username,passwords) VALUES (?,?)", ('heyguys2
 cursor.execute("INSERT INTO login (username,passwords) VALUES (?,?)", ('iluvreading', passwordtohash('doggo8')))
 
 
-#get results
+#get results just used to make sure the database exists and works, dont need
 
-cursor.execute("SELECT * FROM login")
-results=cursor.fetchall()
-print(results)
+# cursor.execute("SELECT * FROM login")
+# results=cursor.fetchall()
+# print(results)
 
 
