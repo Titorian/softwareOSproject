@@ -117,29 +117,27 @@
                 <th>Book Title</th>
                 <th>Author</th>
                 <th>Status</th>
-                <th>Action</th>
+                <th>Num of Copies</th>
+                <th>Genre</th>
             </tr>
 
-            <tr>
-                <td>Cybersecurity Fundamentals</td>
-                <td>Dr. Ruth Agada</td>
-                <td>Available</td>
-                <td><button class="checkout">Checkout</button></td>
-            </tr>
+           {% for book in books %}
+<tr>
+    <td>{{ book[0] }}</td>
+    <td>{{ book[1] }}</td>
 
-            <tr>
-                <td>Database Systems</td>
-                <td>Fletcher Baccus</td>
-                <td>Available</td>
-                <td><button class="checkout">Checkout</button></td>
-            </tr>
+    <td>
+        {% if book[2] > 0 %}
+            Available
+        {% else %}
+            Checked Out
+        {% endif %}
+    </td>
 
-            <tr>
-                <td>Intro to Programming</td>
-                <td>Titorian Huggins</td>
-                <td>Checked Out</td>
-                <td><button class="return">Return</button></td>
-            </tr>
+    <td>{{ book[2] }}</td>   <!-- number of copies -->
+    <td>{{ book[3] }}</td>   <!-- genre -->
+</tr>
+{% endfor %}
 
         </table>
 

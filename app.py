@@ -1,8 +1,70 @@
 #app.py:Fletcher 
-from flask import Flask, request, redirect, session
+from flask import Flask, request, redirect, session, render_template
 import sqlite3
 import bcrypt
+from bookdata import Books, createbook, get_connection, get_books
 
+#///////////////// BOOKS Creation //////////////////////////////////
+
+conn = get_connection()
+cursor = conn.cursor()
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS books(
+    titles TEXT PRIMARY KEY,
+    author TEXT,
+    copies INT,
+    genre TEXT
+)
+""")
+
+#books
+# book1  = Books("Shadow of the Moon", "Lena Carter", 12, "Fantasy")
+# book2  = Books("Digital Fortress", "Aaron Blake", 5, "Thriller")
+# book3  = Books("The Last Algorithm", "Maya Singh", 8, "Sci-Fi")
+# book4  = Books("Echoes of War", "Daniel Hayes", 3, "Historical Fiction")
+# book5  = Books("Mind Over Matter", "Sophia Reed", 10, "Self-Help")
+# book6  = Books("The Silent Forest", "Ethan Cole", 6, "Mystery")
+# book7  = Books("Quantum Dreams", "Noah Bennett", 4, "Science Fiction")
+# book8  = Books("Broken Chains", "Ava Morales", 7, "Drama")
+# book9  = Books("Cooking with Fire", "Gordon Hale", 15, "Cooking")
+# book10 = Books("The Art of Focus", "Liam Brooks", 9, "Productivity")
+# book11 = Books("Ocean Depths", "Isabella Cruz", 2, "Adventure")
+# book12 = Books("Hidden Truths", "Oliver Grant", 11, "Crime")
+books = [
+    Books("Shadow of the Moon", "Lena Carter", 12, "Fantasy"),
+    Books("Digital Fortress", "Aaron Blake", 5, "Thriller"),
+    Books("The Last Algorithm", "Maya Singh", 8, "Sci-Fi"),
+    Books("Echoes of War", "Daniel Hayes", 3, "Historical Fiction"),
+    Books("Mind Over Matter", "Sophia Reed", 10, "Self-Help"),
+    Books("The Silent Forest", "Ethan Cole", 6, "Mystery"),
+    Books("Quantum Dreams", "Noah Bennett", 4, "Science Fiction"),
+    Books("Broken Chains", "Ava Morales", 7, "Drama"),
+    Books("Cooking with Fire", "Gordon Hale", 15, "Cooking"),
+    Books("The Art of Focus", "Liam Brooks", 9, "Productivity"),
+    Books("Ocean Depths", "Isabella Cruz", 2, "Adventure"),
+    Books("Hidden Truths", "Oliver Grant", 11, "Crime")
+]
+
+
+for book in books:
+    cursor.execute(
+        "INSERT OR IGNORE INTO books (titles, author, copies, genre) VALUES (?, ?, ?, ?)",
+        (book.title, book.author, book.copies, book.genre)
+    )
+
+
+conn.commit()
+conn.close()
+
+
+
+
+
+
+
+
+#///////////////////BOOKS Creation//////////////////////////////////////////////
 #first create app
 app = Flask(__name__)
 
@@ -13,6 +75,8 @@ app.secret_key = "simplekey"
 #connects to TJ's code
 def connect_db():
     return sqlite3.connect("usernmaes_pass_database")
+def connect_bookdb():
+    return sqlite3.connect("book_database")
 
 
 #log in
@@ -83,16 +147,19 @@ def register():
 @app.route("/dashboard")
 def dashboard():
 
-    #check if user is logged in
-    if "user" not in session:
-        return "Not logged in"
+    # if "user" not in session:
+    #     return "Not logged in"
 
-    #check role either librarian and User
-    if session["role"] == "librarian":
-        return "Librarian access granted"
-    else:
-        return "User access granted"
+    db = connect_bookdb()
+    cursor = db.cursor()
 
+    cursor.execute("SELECT * FROM books")
+    books = cursor.fetchall()
+    
+
+    db.close()
+
+    return render_template("books.html", books=books)
 
 
 @app.route("/logout")
