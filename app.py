@@ -3,6 +3,41 @@ from flask import Flask, request, redirect, session, render_template
 import sqlite3
 import bcrypt
 from bookdata import Books, createbook, get_connection, get_books
+from database import Accounts, get_connection2, passwordtohash
+
+#-------Login Database--------------------------------------------------
+conn2 = get_connection2()
+cursor2 = conn2.cursor()
+cursor2.execute("""CREATE TABLE IF NOT EXISTS
+login(username TEXT PRIMARY KEY, passwords TEXT)""")
+
+#adding to table
+logins=[
+    Accounts("tim101", passwordtohash("ilikecats22")),
+    Accounts("jon3", passwordtohash("test12")),
+    Accounts("dr.doom", passwordtohash("boomboom34")),
+    Accounts("catwomen", passwordtohash("iamcool10")),
+    Accounts("heyguys21", passwordtohash("password4")),
+    Accounts("iluvreading", passwordtohash("doggo8"))
+]
+
+for login in logins:
+    cursor2.execute(
+        "INSERT OR IGNORE INTO login (username, passwords) VALUES (?, ?)",
+        (login.username, login.password)
+    )
+
+
+# cursor2.execute("INSERT OR IGNORE INTO login (username, passwords) VALUES (?, ?)",("tim101", passwordtohash('ilikecats22')))
+# cursor2.execute("INSERT OR IGNORE INTO login (username,passwords) VALUES (?,?)", ('jon3', passwordtohash('test12')))
+# cursor2.execute("INSERT OR IGNORE INTO login (username,passwords) VALUES (?,?)",('dr.doom', passwordtohash('boomboom34')))
+# cursor2.execute("INSERT OR IGNORE INTO login (username,passwords) VALUES (?,?)", ('catwomen', passwordtohash('iamcool10')))
+# cursor2.execute("INSERT OR IGNORE INTO login (username,passwords) VALUES (?,?)", ('heyguys21', passwordtohash('password4')))
+# cursor2.execute("INSERT OR IGNORE INTO login (username,passwords) VALUES (?,?)", ('iluvreading', passwordtohash('doggo8')))
+
+conn2.commit()
+conn2.close()
+#------------------------------------------------------------------------
 
 #///////////////// BOOKS Creation //////////////////////////////////
 
@@ -18,19 +53,6 @@ CREATE TABLE IF NOT EXISTS books(
 )
 """)
 
-#books
-# book1  = Books("Shadow of the Moon", "Lena Carter", 12, "Fantasy")
-# book2  = Books("Digital Fortress", "Aaron Blake", 5, "Thriller")
-# book3  = Books("The Last Algorithm", "Maya Singh", 8, "Sci-Fi")
-# book4  = Books("Echoes of War", "Daniel Hayes", 3, "Historical Fiction")
-# book5  = Books("Mind Over Matter", "Sophia Reed", 10, "Self-Help")
-# book6  = Books("The Silent Forest", "Ethan Cole", 6, "Mystery")
-# book7  = Books("Quantum Dreams", "Noah Bennett", 4, "Science Fiction")
-# book8  = Books("Broken Chains", "Ava Morales", 7, "Drama")
-# book9  = Books("Cooking with Fire", "Gordon Hale", 15, "Cooking")
-# book10 = Books("The Art of Focus", "Liam Brooks", 9, "Productivity")
-# book11 = Books("Ocean Depths", "Isabella Cruz", 2, "Adventure")
-# book12 = Books("Hidden Truths", "Oliver Grant", 11, "Crime")
 books = [
     Books("Shadow of the Moon", "Lena Carter", 12, "Fantasy"),
     Books("Digital Fortress", "Aaron Blake", 5, "Thriller"),
@@ -56,13 +78,6 @@ for book in books:
 
 conn.commit()
 conn.close()
-
-
-
-
-
-
-
 
 #///////////////////BOOKS Creation//////////////////////////////////////////////
 #first create app
@@ -141,6 +156,18 @@ def register():
 
     #user back to login page
     return redirect("/")
+
+#user account screens only the librarian can see
+@app.route("/accounts")
+def accounts():
+    db2 = connect_db()
+    cursor2 = db2.cursor()
+
+    cursor2.execute("SELECT * FROM login")
+    logins = cursor2.fetchall()
+    print(logins)
+    db2.close()
+    return render_template("logins.html", logins=logins)
 
 
 #dashboard
