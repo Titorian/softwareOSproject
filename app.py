@@ -2,6 +2,7 @@
 from flask import Flask, request, redirect, session, render_template
 import sqlite3
 import bcrypt
+import re
 from bookdata import Books, createbook, get_connection, get_books
 from database import Accounts, get_connection2, passwordtohash
 
@@ -94,39 +95,73 @@ def connect_bookdb():
     return sqlite3.connect("book_database")
 
 
-#log in
+#pass validation
+def is_strong_password(password):
+    if len(password) < 8:
+        return False
+    if not re.search(r"[A-Z]", password):
+        return False
+    if not re.search(r"[a-z]", password):
+        return False
+    if not re.search(r"[0-9]", password):
+        return False
+    return True
+
+
+#login LockSYstem
+login_attempts = {}
+LOCK_TIME = 60  
+
+
+#login
 @app.route("/login", methods=["POST"])
 def login():
-
-    #retrieves the input data of user such as their chosem username and password
     username = request.form["username"]
-    password = request.form["passwords"]
+    password = request.form["password"]
 
-    #connects to TJ's code
+    if not username or not password:
+        return "Invalid input"
+
+    #lockFeature(Honors Credit)
+    if username in login_attempts:
+        attempts, last_attempt = login_attempts[username]
+
+        if attempts >= 3 and time.time() - last_attempt < LOCK_TIME:
+            return "Too many failed attempts. Try again later."
+
     db = connect_db()
 
-    #retrieves user from database by their username
-    #"?" is used to prevent SQL injection
     user = db.execute(
-        "SELECT * FROM users WHERE username = ?", (username,)
+        "SELECT * FROM login WHERE username = ?",
+        (username,)
     ).fetchone()
 
-    #checks if user is availible
     if user:
+        stored_password = user[1]
 
-        #retrieves hashed password from database
-        stored_password = user[2]
+        login_success = False
 
-        #compares user input password to their hashed password
-        if bcrypt.checkpw(password.encode(), stored_password):
+        try:
+            # Try bcrypt (if hashed)
+            login_success = bcrypt.checkpw(
+                password.encode(),
+                stored_password.encode('utf-8')
+            )
+        except:
+            login_success = (password == stored_password)
 
-            #saves user info keeping them logged in
+        if login_success:
             session["user"] = username
-            session["role"] = user[3]
+            session["role"] = "user"
 
-            #dashboard after login
+            # reset attempts after 60sec time
+            login_attempts[username] = (0, time.time())
+
             return redirect("/dashboard")
 
+    #failedLogin
+    attempts, _ = login_attempts.get(username, (0, 0))
+    login_attempts[username] = (attempts + 1, time.time())
 
     return "Login failed"
 
@@ -160,12 +195,13 @@ def register():
 #user account screens only the librarian can see
 @app.route("/accounts")
 def accounts():
+    
     db2 = connect_db()
     cursor2 = db2.cursor()
 
     cursor2.execute("SELECT * FROM login")
     logins = cursor2.fetchall()
-    print(logins)
+   # print(logins)
     db2.close()
     return render_template("logins.html", logins=logins)
 
@@ -174,14 +210,19 @@ def accounts():
 @app.route("/dashboard")
 def dashboard():
 
-    # if "user" not in session:
-    #     return "Not logged in"
+    if "user" not in session:
+        return "Not logged in"
 
     db = connect_bookdb()
     cursor = db.cursor()
 
     cursor.execute("SELECT * FROM books")
     books = cursor.fetchall()
+
+    if session["role"] == "librarian":
+        return "Librarian access granted"
+    else:
+        return "User access granted"
     
 
     db.close()
