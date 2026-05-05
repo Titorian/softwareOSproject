@@ -15,7 +15,7 @@ def passwordtohash(passd):
 
 #connection to database
 def get_connection2():
-        return sqlite3.connect('usernmaes_pass_database')
+        return sqlite3.connect('usernames_pass_database')
 
 # #adding to table
 

@@ -3,6 +3,7 @@ from flask import Flask, request, redirect, session, render_template
 import sqlite3
 import bcrypt
 import re
+import time
 from bookdata import Books, createbook, get_connection, get_books
 from database import Accounts, get_connection2, passwordtohash
 
@@ -54,8 +55,17 @@ CREATE TABLE IF NOT EXISTS books(
 )
 """)
 
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS checkouts(
+    username TEXT,
+    title TEXT,
+    PRIMARY KEY (username, title)
+)
+""")
+
 books = [
-    Books("Shadow of the Moon", "Lena Carter", 12, "Fantasy"),
+    Books("Shadow of the Moon", "Lena Carter", 11, "Fantasy"),
     Books("Digital Fortress", "Aaron Blake", 5, "Thriller"),
     Books("The Last Algorithm", "Maya Singh", 8, "Sci-Fi"),
     Books("Echoes of War", "Daniel Hayes", 3, "Historical Fiction"),
@@ -81,6 +91,7 @@ conn.commit()
 conn.close()
 
 #///////////////////BOOKS Creation//////////////////////////////////////////////
+
 #first create app
 app = Flask(__name__)
 
@@ -90,7 +101,7 @@ app.secret_key = "simplekey"
 
 #connects to TJ's code
 def connect_db():
-    return sqlite3.connect("usernmaes_pass_database")
+    return sqlite3.connect("usernames_pass_database")
 def connect_bookdb():
     return sqlite3.connect("book_database")
 
@@ -114,10 +125,12 @@ LOCK_TIME = 60
 
 
 #login
-@app.route("/login", methods=["POST"])
+@app.route("/login", methods=["GET", "POST"])
 def login():
+    if request.method == "GET":
+        return render_template("index.html")
     username = request.form["username"]
-    password = request.form["password"]
+    password = request.form["passwords"]
 
     if not username or not password:
         return "Invalid input"
@@ -129,26 +142,31 @@ def login():
         if attempts >= 3 and time.time() - last_attempt < LOCK_TIME:
             return "Too many failed attempts. Try again later."
 
-    db = connect_db()
+    db2 = connect_db()
 
-    user = db.execute(
+    user = db2.execute(
         "SELECT * FROM login WHERE username = ?",
         (username,)
     ).fetchone()
-
+    print("USER FOUND:", user)          # is the user even in the DB?
+    print("ENTERED PASSWORD:", password)
+    print("STORED PASSWORD:", user[1] if user else "no user")
     if user:
         stored_password = user[1]
 
         login_success = False
 
-        try:
-            # Try bcrypt (if hashed)
-            login_success = bcrypt.checkpw(
-                password.encode(),
-                stored_password.encode('utf-8')
-            )
-        except:
-            login_success = (password == stored_password)
+
+
+    #checks if the passwords match
+        if user:
+            stored_password = user[1]
+            # bcrypt.checkpw handles the comparison — just pass plain password
+            if bcrypt.checkpw(password.encode(), stored_password):
+                session["user"] = username
+                return redirect("/selection")
+
+        return "Login failed"
 
         if login_success:
             session["user"] = username
@@ -157,7 +175,7 @@ def login():
             # reset attempts after 60sec time
             login_attempts[username] = (0, time.time())
 
-            return redirect("/dashboard")
+            return redirect("/selection")
 
     #failedLogin
     attempts, _ = login_attempts.get(username, (0, 0))
@@ -178,16 +196,16 @@ def register():
     hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
 
     #connect to TJ's code
-    db = connect_db()
+    db2 = connect_db()
 
     #new user in database
-    db.execute(
+    db2.execute(
         "INSERT INTO users (username, password, role) VALUES (?, ?, ?)",
         (username, hashed_password, "user")  # default role = user
     )
 
     #save
-    db.commit()
+    db2.commit()
 
     #user back to login page
     return redirect("/")
@@ -206,12 +224,12 @@ def accounts():
     return render_template("logins.html", logins=logins)
 
 
-#dashboard
+#dashboard for general view
 @app.route("/dashboard")
 def dashboard():
 
     if "user" not in session:
-        return "Not logged in"
+        return redirect("/")   # send back to login
 
     db = connect_bookdb()
     cursor = db.cursor()
@@ -219,15 +237,76 @@ def dashboard():
     cursor.execute("SELECT * FROM books")
     books = cursor.fetchall()
 
-    if session["role"] == "librarian":
-        return "Librarian access granted"
-    else:
-        return "User access granted"
-    
-
     db.close()
 
     return render_template("books.html", books=books)
+
+
+#once logged in can checkout books
+@app.route("/selection")
+def selection():
+    if "user" not in session:
+        return redirect("/")
+
+    username = session["user"]  # ← add this, was missing
+
+    db = connect_bookdb()
+    cursor = db.cursor()
+
+    cursor.execute("SELECT * FROM books")
+    books = cursor.fetchall()
+
+    cursor.execute(
+        "SELECT title FROM checkouts WHERE username = ?",
+        (username,)
+    )
+    checked_out = [row[0] for row in cursor.fetchall()]
+
+    db.close()
+
+    return render_template("userbooks.html", books=books, username=username, checked_out=checked_out)  # ← add checked_out
+
+
+
+@app.route("/checkout/<title>", methods=["POST"])
+def checkout(title):
+    if "user" not in session:
+        return redirect("/")
+
+    username = session["user"]  # ← add this
+
+    db = connect_bookdb()
+    cursor = db.cursor()
+
+    cursor.execute("SELECT copies FROM books WHERE titles = ?", (title,))
+    book = cursor.fetchone()
+
+    if not book:
+        db.close()
+        return "Book not found", 404
+
+    if book[0] <= 0:
+        db.close()
+        return "No copies available", 400
+
+    cursor.execute(
+        "UPDATE books SET copies = copies - 1 WHERE titles = ?",
+        (title,)
+    )
+
+    # ← add this - records who checked out what
+    cursor.execute(
+        "INSERT OR IGNORE INTO checkouts (username, title) VALUES (?, ?)",
+        (username, title)
+    )
+
+    db.commit()
+    db.close()
+
+    return redirect("/selection")  
+
+
+
 
 
 @app.route("/logout")

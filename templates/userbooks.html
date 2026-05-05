@@ -95,7 +95,7 @@
 
     <!-- NAVBAR -->
     <div class="navbar">
-        <div><strong>📚 Library System</strong></div>
+         <div><strong>📚 Library System</strong> &nbsp;&nbsp;|&nbsp;&nbsp; {{ username }}</div>
          
         <div>
             <a href="index.html">Home</a>
@@ -121,6 +121,7 @@
                 <th>Status</th>
                 <th>Num of Copies</th>
                 <th>Genre</th>
+                <th>Checkout</th>
             </tr>
 
            {% for book in books %}
@@ -138,6 +139,21 @@
 
     <td>{{ book[2] }}</td>   <!-- number of copies -->
     <td>{{ book[3] }}</td>   <!-- genre -->
+
+     <td>
+        {% if book[0] in checked_out %}
+            <!-- user already has this book - greyed out -->
+            <button disabled style="background-color: #ccc; cursor: not-allowed;">Already Checkout</button>
+        {% elif book[2] > 0 %}
+            <!-- available -->
+            <form action="/checkout/{{ book[0] }}" method="POST">
+                <button class="checkout" type="submit">Checkout</button>
+            </form>
+        {% else %}
+            <!-- no copies left -->
+            <button disabled style="background-color: #ccc; cursor: not-allowed;">Unavailable</button>
+        {% endif %}
+</td>
 </tr>
 {% endfor %}
 
