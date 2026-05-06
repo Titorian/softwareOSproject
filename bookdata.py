@@ -56,6 +56,7 @@ def get_books():
 
 
 
+
 # command1 = """CREATE TABLE IF NOT EXISTS
 # books(titles TEXT PRIMARY KEY, author TEXT, copies INT, genre TEXT)"""
 # cursor.execute(command1)

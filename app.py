@@ -175,7 +175,7 @@ def login():
             # reset attempts after 60sec time
             login_attempts[username] = (0, time.time())
 
-            return redirect("/selection")
+            return redirect("/userhome.html")
 
     #failedLogin
     attempts, _ = login_attempts.get(username, (0, 0))
@@ -228,9 +228,6 @@ def accounts():
 @app.route("/dashboard")
 def dashboard():
 
-    if "user" not in session:
-        return redirect("/")   # send back to login
-
     db = connect_bookdb()
     cursor = db.cursor()
 
@@ -241,14 +238,14 @@ def dashboard():
 
     return render_template("books.html", books=books)
 
-
+#---------------USER FUNCTIONALITY---------------------------------------------------------
 #once logged in can checkout books
 @app.route("/selection")
 def selection():
     if "user" not in session:
         return redirect("/")
 
-    username = session["user"]  # ← add this, was missing
+    username = session["user"]  
 
     db = connect_bookdb()
     cursor = db.cursor()
@@ -267,12 +264,11 @@ def selection():
     return render_template("userbooks.html", books=books, username=username, checked_out=checked_out)  # ← add checked_out
 
 
-
+#allows user to checkout books
 @app.route("/checkout/<title>", methods=["POST"])
 def checkout(title):
     if "user" not in session:
         return redirect("/")
-
     username = session["user"]  # ← add this
 
     db = connect_bookdb()
@@ -305,9 +301,46 @@ def checkout(title):
 
     return redirect("/selection")  
 
+#home page for users to look at what books they need
+@app.route("/home")
+def home():
+    if "user" not in session:
+        return redirect("/")
+
+    username = session["user"]
+    db = connect_bookdb()
+    cursor = db.cursor()
+
+    cursor.execute(
+        "SELECT title FROM checkouts WHERE username = ?",
+        (username,)
+    )
+    checked_out = [row[0] for row in cursor.fetchall()]
+
+    db.close()
+    return render_template("userhome.html", username=username, checked_out=checked_out)
 
 
+#allows user to return books
+@app.route("/return/<title>", methods=["POST"])
+def return_book(title):
+    if "user" not in session:
+        return redirect("/")
 
+    username = session["user"]
+    db = connect_bookdb()
+    cursor = db.cursor()
+
+    cursor.execute("UPDATE books SET copies = copies + 1 WHERE titles = ?", (title,))
+    cursor.execute(
+        "DELETE FROM checkouts WHERE username = ? AND title = ?",
+        (username, title)
+    )
+
+    db.commit()
+    db.close()
+    return redirect("/home")  # ← back to home page
+#------------------------USER FUNCTIONALITY--------------------------------------------------------
 
 @app.route("/logout")
 def logout():
@@ -315,7 +348,7 @@ def logout():
     #log out
     session.clear()
 
-    return "Logged out"
+    return redirect("/login")
 
 
 

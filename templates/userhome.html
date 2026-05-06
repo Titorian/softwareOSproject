@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Home</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial;
+            background-color: #f4f6f8;
+        }
+
+        /* NAVBAR */
+        .navbar {
+            background-color: #1e293b;
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            margin-left: 15px;
+        }
+
+        /* CONTAINER */
+        .container {
+            padding: 30px;
+        }
+
+        h2 {
+            text-align: center;
+            font-size: 36px;
+        }
+
+        /* PROFILE */
+        .profile {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 30px 0 20px 40px;
+        }
+
+        .profile-icon {
+            width: 80px;
+            height: 80px;
+            background-color: #2563eb;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .profile-icon svg {
+            width: 50px;
+            height: 50px;
+            fill: white;
+        }
+
+        .profile-name {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        /* CHECKED OUT BOOKS */
+        .checked-out {
+            margin: 10px 0 0 40px;
+        }
+
+        .checked-out h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .checked-out ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .checked-out ul li {
+            padding: 8px 0;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .checked-out ul li::before {
+            content: "— ";
+            color: #2563eb;
+            font-weight: bold;
+            display: flex;        /* ← add this */
+            align-items: center;  
+        }
+
+        .no-books {
+            color: #888;
+            font-style: italic;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <div class="navbar">
+        <div><strong>📚 Library System</strong> &nbsp;&nbsp;|&nbsp;&nbsp; {{ username }}</div>
+        <div>
+            <a href="/home">Home</a>
+            <a href="/selection">Books</a>
+            <a href="/logout">Logout</a>
+        </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="container">
+
+        <h2>Home</h2>
+
+        <!-- PROFILE -->
+        <div class="profile">
+            <div class="profile-icon">
+                <!-- person silhouette SVG -->
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
+                </svg>
+            </div>
+            <div class="profile-name">{{ username }}</div>
+        </div>
+
+        <!-- CHECKED OUT BOOKS -->
+<div class="checked-out">
+    <h3>Checked Out Books:</h3>
+    <ul>
+        {% if checked_out %}
+            {% for title in checked_out %}
+                <li>
+                    <span>{{ title }}</span>
+                    <form action="/return/{{ title }}" method="POST" style="display: inline;">
+                        <button type="submit" style="
+                            margin-left: 15px;
+                            padding: 5px 10px;
+                            background-color: #16a34a;
+                            color: white;
+                            border: none;
+                            border-radius: 5px;
+                            cursor: pointer;
+                        ">Return</button>
+                    </form>
+                </li>
+            {% endfor %}
+        {% else %}
+            <li class="no-books">No books currently checked out.</li>
+        {% endif %}
+    </ul>
+</div>
+
+    </div>
+
+</body>
+</html>
