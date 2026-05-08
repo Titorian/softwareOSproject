@@ -1,53 +1,45 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Register</title>
+<title>Register</title>
 
-    <style>
-        body {
-            font-family: Arial;
-            text-align: center;
-            background-color: #f2f2f2;
-        }
-
-        form {
-            background: white;
-            padding: 20px;
-            display: inline-block;
-            margin-top: 50px;
-            border-radius: 10px;
-        }
-
-        input {
-            padding: 8px;
-            width: 200px;
-        }
-
-        button {
-            padding: 10px;
-            background-color: green;
-            color: white;
-            border: none;
-            border-radius: 5px;
-        }
-    </style>
+<style>
+body { margin:0; font-family:Arial; background:#f4f6f8; }
+.navbar { background:#1e293b; color:white; padding:15px; text-align:center; }
+.container { display:flex; justify-content:center; margin-top:80px; }
+form { background:white; padding:30px; border-radius:10px; width:300px; text-align:center; }
+input { padding:10px; width:90%; margin-bottom:15px; }
+button { padding:10px; width:100%; background:#2563eb; color:white; border:none; }
+</style>
 </head>
+
 <body>
 
-    <h2>Create Account</h2>
+<div class="navbar">📚 Library System</div>
 
-    <form action="/register" method="POST">
-        <label>Username:</label><br>
-        <input type="text" name="username" required><br><br>
+<div class="container">
+<form action="/register" method="POST">
 
-        <label>Password:</label><br>
-        <input type="password" name="password" required><br><br>
+<h2>Create Account</h2>
 
-        <button type="submit">Register</button>
-    </form>
+{% if error %}
+<p style="color:red;">{{ error }}</p>
+{% endif %}
 
+<<<<<<< Updated upstream:register.html
     <br><br>
     <a href="index.html">Back to Login</a>
+=======
+<input type="text" name="username" placeholder="Username">
+<input type="password" name="password" placeholder="Password">
+
+<button type="submit">Register</button>
+
+<a href="/">Back to Login</a>
+
+</form>
+</div>
+>>>>>>> Stashed changes:templates/register.html
 
 </body>
 </html>

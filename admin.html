@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Librarian Panel</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background-color: #f4f6f8;
+        }
+
+        .navbar {
+            background-color: #1e293b;
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .navbar a {
+            color: white;
+            margin-left: 15px;
+            text-decoration: none;
+        }
+
+        table {
+            width: 90%;
+            margin: 40px auto;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th {
+            background: #1e293b;
+            color: white;
+            padding: 10px;
+        }
+
+        td {
+            padding: 10px;
+            text-align: center;
+        }
+
+        tr:nth-child(even) {
+            background: #f1f5f9;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="navbar">
+    <div><strong>📚 Librarian Panel</strong></div>
+    <div>
+        <a href="/dashboard">User View</a>
+        <a href="/logout">Logout</a>
+    </div>
+</div>
+
+<table>
+<tr>
+    <th>Title</th>
+    <th>Author</th>
+    <th>Copies</th>
+    <th>Genre</th>
+    <th>Checked Out By</th>
+</tr>
+
+{% for r in records %}
+<tr>
+    <td>{{ r[0] }}</td>
+    <td>{{ r[1] }}</td>
+    <td>{{ r[2] }}</td>
+    <td>{{ r[3] }}</td>
+<td>
+    {% if r[4] %}
+        {{ r[4] }}
+    {% else %}
+        Available
+    {% endif %}
+</td>
+</tr>
+{% endfor %}
+
+</table>
+
+</body>
+</html>

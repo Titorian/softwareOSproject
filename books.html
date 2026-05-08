@@ -10,7 +10,6 @@
             background-color: #f4f6f8;
         }
 
-        /* NAVBAR */
         .navbar {
             background-color: #1e293b;
             color: white;
@@ -25,7 +24,6 @@
             margin-left: 15px;
         }
 
-        /* CONTAINER */
         .container {
             padding: 30px;
         }
@@ -34,7 +32,6 @@
             text-align: center;
         }
 
-        /* TABLE */
         table {
             width: 80%;
             margin: auto;
@@ -60,25 +57,6 @@
             background-color: #f1f5f9;
         }
 
-        /* BUTTONS */
-        button {
-            padding: 8px 12px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .checkout {
-            background-color: #2563eb;
-            color: white;
-        }
-
-        .return {
-            background-color: #16a34a;
-            color: white;
-        }
-
-        /* SEARCH BAR */
         .search {
             display: block;
             margin: 20px auto;
@@ -88,11 +66,25 @@
             border: 1px solid #ccc;
         }
 
+        button {
+            padding: 6px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #2563eb;
+            color: white;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 
 <body>
 
+<<<<<<< Updated upstream:books.html
     <!-- NAVBAR -->
     <div class="navbar">
         <div><strong>📚 Library System</strong></div>
@@ -101,16 +93,27 @@
             <a href="#">My Books</a>
             <a href="index.html">Logout</a>
         </div>
+=======
+<div class="navbar">
+    <div><strong>📚 Library System</strong></div>
+    <div>
+        <a href="/">Login</a>
+        <a href="/dashboard">Books</a>
+        <a href="/admin">Admin</a>
+        <a href="/logout">Logout</a>
+>>>>>>> Stashed changes:templates/books.html
     </div>
+</div>
 
-    <!-- CONTENT -->
-    <div class="container">
+<div class="container">
 
-        <h2>Available Books</h2>
+    <h2>Available Books</h2>
 
-        <!-- SEARCH BAR -->
-        <input class="search" type="text" placeholder="Search books...">
+    <form method="GET" action="/dashboard">
+        <input class="search" type="text" name="search" placeholder="Search books...">
+    </form>
 
+<<<<<<< Updated upstream:books.html
         <!-- TABLE -->
         <table>
             <tr>
@@ -140,10 +143,49 @@
                 <td>Checked Out</td>
                 <td><button class="return">Return</button></td>
             </tr>
+=======
+    <table>
+        <tr>
+            <th>Title</th>
+            <th>Author</th>
+            <th>Status</th>
+            <th>Copies</th>
+            <th>Genre</th>
+            <th>Action</th>
+        </tr>
 
-        </table>
+        {% for book in books %}
+        <tr>
+            <td>{{ book[0] }}</td>
+            <td>{{ book[1] }}</td>
 
-    </div>
+            <td>
+                {% if book[2] > 0 %}
+                    Available
+                {% else %}
+                    Checked Out
+                {% endif %}
+            </td>
+
+            <td>{{ book[2] }}</td>
+            <td>{{ book[3] }}</td>
+>>>>>>> Stashed changes:templates/books.html
+
+            <td>
+                {% if book[2] > 0 %}
+                    <form action="/checkout/{{ book[0] }}" method="POST">
+                        <button type="submit">Checkout</button>
+                    </form>
+                {% else %}
+                    <button disabled>Unavailable</button>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+
+    </table>
+
+</div>
 
 </body>
 </html>
