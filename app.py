@@ -1,63 +1,12 @@
-<<<<<<< Updated upstream
-#app.py:Fletcher 
-from flask import Flask, request, redirect, session
-import sqlite3
-import bcrypt
-
-#first create app
-=======
 from flask import Flask, request, redirect, session, render_template
 import sqlite3
 import bcrypt
 import datetime
 import time
 
->>>>>>> Stashed changes
 app = Flask(__name__)
 app.secret_key = "simplekey"
 
-<<<<<<< Updated upstream
-
-#connects to TJ's code
-def connect_db():
-
-    return sqlite3.connect("library.db")
-
-
-#log in
-@app.route("/login", methods=["POST"])
-def login():
-
-    #retrieves the input data of user such as their chosem username and password
-    username = request.form["username"]
-    password = request.form["password"]
-
-    #connects to TJ's code
-    db = connect_db()
-
-    #retrieves user from database by their username
-    #"?" is used to prevent SQL injection
-    user = db.execute(
-        "SELECT * FROM users WHERE username = ?", (username,)
-    ).fetchone()
-
-    #checks if user is availible
-    if user:
-
-        #retrieves hashed password from database
-        stored_password = user[2]
-
-        #compares user input password to their hashed password
-        if bcrypt.checkpw(password.encode(), stored_password):
-
-            #saves user info keeping them logged in
-            session["user"] = username
-            session["role"] = user[3]
-
-            #dashboard after login
-            return redirect("/dashboard")
-
-=======
 # Login Lock System
 login_attempts = {}
 LOCK_TIME = 60
@@ -150,7 +99,6 @@ def init_db():
 
     db.execute("INSERT INTO login VALUES (?, ?, ?)",
         ("admin", bcrypt.hashpw("admin123".encode(), bcrypt.gensalt()).decode(), "admin"))
->>>>>>> Stashed changes
 
     db.commit()
     db.close()
@@ -175,19 +123,6 @@ def register():
     if not username or not password:
         return render_template("register.html", error="Fields cannot be empty")
 
-<<<<<<< Updated upstream
-    #connect to TJ's code
-    db = connect_db()
-
-    #new user in database
-    db.execute(
-        "INSERT INTO users (username, password, role) VALUES (?, ?, ?)",
-        (username, hashed_password, "user")  # default role = user
-    )
-
-    #save
-    db.commit()
-=======
     # PASSWORD VALIDATION (THIS IS THE FIX)
     if len(password) < 8:
         return render_template("register.html",
@@ -204,7 +139,6 @@ def register():
     if not any(c.isdigit() for c in password):
         return render_template("register.html",
             error="Password must include a number")
->>>>>>> Stashed changes
 
     hashed = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
@@ -220,14 +154,6 @@ def register():
     db.close()
     return redirect("/")
 
-<<<<<<< Updated upstream
-
-#dashboard
-@app.route("/dashboard")
-def dashboard():
-
-    #check if user is logged in
-=======
 # Forgot Password
 @app.route("/forgot", methods=["GET", "POST"])
 def forgot():
@@ -312,17 +238,9 @@ def login():
 @app.route("/dashboard")
 def dashboard():
 
->>>>>>> Stashed changes
     if "user" not in session:
         return "Not logged in"
 
-<<<<<<< Updated upstream
-    #check role either librarian and User
-    if session["role"] == "librarian":
-        return "Librarian access granted"
-    else:
-        return "User access granted"
-=======
     search = request.args.get("search")
 
     db = sqlite3.connect("book_database.db")
@@ -344,15 +262,11 @@ def dashboard():
     db.close()
 
     return render_template("books.html", books=books, checked_out=checked_out)
->>>>>>> Stashed changes
 
 # Checkout
 @app.route("/checkout/<book>", methods=["POST"])
 def checkout(book):
 
-<<<<<<< Updated upstream
-
-=======
     db = sqlite3.connect("book_database.db")
     cursor = db.cursor()
 
@@ -408,20 +322,11 @@ def admin():
     return render_template("admin.html", records=records)
 
 # Logout
->>>>>>> Stashed changes
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect("/")
 
-<<<<<<< Updated upstream
-    return "Logged out"
-
-
-
-app.run(debug=True)
-=======
 if __name__ == "__main__":
     init_db()
     app.run(debug=True)
->>>>>>> Stashed changes

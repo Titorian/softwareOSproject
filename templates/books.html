@@ -84,16 +84,6 @@
 
 <body>
 
-<<<<<<< Updated upstream:books.html
-    <!-- NAVBAR -->
-    <div class="navbar">
-        <div><strong>📚 Library System</strong></div>
-        <div>
-            <a href="index.html">Home</a>
-            <a href="#">My Books</a>
-            <a href="index.html">Logout</a>
-        </div>
-=======
 <div class="navbar">
     <div><strong>📚 Library System</strong></div>
     <div>
@@ -101,7 +91,6 @@
         <a href="/dashboard">Books</a>
         <a href="/admin">Admin</a>
         <a href="/logout">Logout</a>
->>>>>>> Stashed changes:templates/books.html
     </div>
 </div>
 
@@ -113,37 +102,6 @@
         <input class="search" type="text" name="search" placeholder="Search books...">
     </form>
 
-<<<<<<< Updated upstream:books.html
-        <!-- TABLE -->
-        <table>
-            <tr>
-                <th>Book Title</th>
-                <th>Author</th>
-                <th>Status</th>
-                <th>Action</th>
-            </tr>
-
-            <tr>
-                <td>Cybersecurity Fundamentals</td>
-                <td>Dr. Ruth Agada</td>
-                <td>Available</td>
-                <td><button class="checkout">Checkout</button></td>
-            </tr>
-
-            <tr>
-                <td>Database Systems</td>
-                <td>Fletcher Baccus</td>
-                <td>Available</td>
-                <td><button class="checkout">Checkout</button></td>
-            </tr>
-
-            <tr>
-                <td>Intro to Programming</td>
-                <td>Titorian Huggins</td>
-                <td>Checked Out</td>
-                <td><button class="return">Return</button></td>
-            </tr>
-=======
     <table>
         <tr>
             <th>Title</th>
@@ -169,7 +127,6 @@
 
             <td>{{ book[2] }}</td>
             <td>{{ book[3] }}</td>
->>>>>>> Stashed changes:templates/books.html
 
             <td>
                 {% if book[2] > 0 %}

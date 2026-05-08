@@ -71,34 +71,18 @@
     📚 Library System
 </div>
 
-<<<<<<< Updated upstream:index.html
-    <div class="login-container">
-        <form action="books.html">
-            <h2>Login</h2>
-=======
 <div class="login-container">
 <form action="/login" method="POST">
->>>>>>> Stashed changes:templates/index.html
 
 <h2>Login</h2>
 
-<<<<<<< Updated upstream:index.html
-            <input type="password" name="password" placeholder="Password" required>
-=======
 {% if error %}
 <p class="error">{{ error }}</p>
->>>>>>> Stashed changes:templates/index.html
 
 {% if "Too many" in error or "Incorrect" in error %}
 <a href="/forgot">Forgot Password?</a>
 {% endif %}
 
-<<<<<<< Updated upstream:index.html
-            <a href="register.html">Create an account</a>
-            <a href="books.html">Browse Books</a>
-        </form>
-    </div>
-=======
 {% endif %}
 
 <input type="text" name="username" placeholder="Username">
@@ -110,7 +94,6 @@
 
 </form>
 </div>
->>>>>>> Stashed changes:templates/index.html
 
 </body>
 </html>
