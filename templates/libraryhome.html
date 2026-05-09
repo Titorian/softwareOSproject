@@ -96,43 +96,48 @@
     <!-- NAVBAR -->
     <div class="navbar">
         <div><strong>📚 Library System</strong></div>
+         
         <div>
             <a href="/">Modify Library</a>
             <a href="/libhome">Home</a>
             <a href="/accounts">Check User Accounts</a>
             <a href="/logout">Logout</a>
-            
         </div>
     </div>
 
     <!-- CONTENT -->
     <div class="container">
 
-        <h2>User Accounts</h2>
+        <h2>Available Books</h2>
+
+        <!-- SEARCH BAR -->
+        <input class="search" type="text" placeholder="Search books...">
 
         <!-- TABLE -->
         <table>
             <tr>
-                <th>Username</th>
-                <th>Password</th>
-                <th>Checked Out Books</th>
+                <th>Book Title</th>
+                <th>Author</th>
+                <th>Status</th>
+                <th>Num of Copies</th>
+                <th>Genre</th>
             </tr>
 
-           {% for login in logins %}
+           {% for book in books %}
 <tr>
-    <td>{{ login[0] }}</td>
-    <td>{{ login[1] }}</td>
+    <td>{{ book[0] }}</td>
+    <td>{{ book[1] }}</td>
+
     <td>
-        {% if checkouts %}
-            {% for checkout in checkouts %}
-                {% if checkout[0] == login[0] %}
-                    {{ checkout[1] }}<br>
-                {% endif %}
-            {% endfor %}
+        {% if book[2] > 0 %}
+            Available
         {% else %}
-            None
+            Checked Out
         {% endif %}
     </td>
+
+    <td>{{ book[2] }}</td>   <!-- number of copies -->
+    <td>{{ book[3] }}</td>   <!-- genre -->
 </tr>
 {% endfor %}
 

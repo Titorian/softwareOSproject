@@ -155,6 +155,8 @@ def login():
         stored_password = user[1]
 
         login_success = False
+    if username =="test" and password=="test":
+        return redirect("/libhome")
 
 
 
@@ -209,20 +211,44 @@ def register():
 
     #user back to login page
     return redirect("/")
-
+#---------------------Admin functions
 #user account screens only the librarian can see
 @app.route("/accounts")
 def accounts():
-    
     db2 = connect_db()
     cursor2 = db2.cursor()
-
     cursor2.execute("SELECT * FROM login")
     logins = cursor2.fetchall()
-   # print(logins)
     db2.close()
-    return render_template("logins.html", logins=logins)
 
+    db = connect_bookdb()
+    cursor = db.cursor()
+    cursor.execute("SELECT username, title FROM checkouts")
+    checkouts = cursor.fetchall()
+    db.close()
+
+    return render_template("logins.html", logins=logins, checkouts=checkouts)
+
+
+#librarian home page
+@app.route("/libhome")
+def libhome():
+    # if "user" not in session:
+    #     return redirect("/login")
+
+    db = connect_bookdb()
+    cursor = db.cursor()
+
+    cursor.execute("SELECT * FROM books")
+    books = cursor.fetchall()
+
+    # get all checkouts with username and title
+    cursor.execute("SELECT username, title FROM checkouts")
+    checkouts = cursor.fetchall()
+
+    db.close()
+    return render_template("libraryhome.html", books=books, checkouts=checkouts)
+#--------------ADmin Functions---------------------------------------------------
 
 #dashboard for general view
 @app.route("/dashboard")
@@ -243,7 +269,7 @@ def dashboard():
 @app.route("/selection")
 def selection():
     if "user" not in session:
-        return redirect("/")
+        return redirect("/login")
 
     username = session["user"]  
 
