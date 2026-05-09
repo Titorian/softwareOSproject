@@ -79,6 +79,10 @@
             background-color: #ccc;
             cursor: not-allowed;
         }
+
+        .disabled-row {
+            opacity: 0.5;
+        }
     </style>
 </head>
 
@@ -89,18 +93,22 @@
     <div>
         <a href="/">Login</a>
         <a href="/dashboard">Books</a>
-        <a href="/admin">Admin</a>
+        <a href="/staff">Staff</a>
         <a href="/logout">Logout</a>
     </div>
 </div>
 
 <div class="container">
 
-    <h2>Available Books</h2>
+<h2>Available Books</h2>
 
-    <form method="GET" action="/dashboard">
-        <input class="search" type="text" name="search" placeholder="Search books...">
-    </form>
+{% if books|length == 0 %}
+    <p style="text-align:center;">No books found.</p>
+{% endif %}
+
+<form method="GET" action="/dashboard">
+    <input class="search" type="text" name="search" placeholder="Search books...">
+</form>
 
     <table>
         <tr>
@@ -113,15 +121,18 @@
         </tr>
 
         {% for book in books %}
-        <tr>
+        <tr class="{% if book[0] in checked_books %}disabled-row{% endif %}">
+
             <td>{{ book[0] }}</td>
             <td>{{ book[1] }}</td>
 
             <td>
-                {% if book[2] > 0 %}
+                {% if book[0] in checked_books %}
+                    Checked Out
+                {% elif book[2] > 0 %}
                     Available
                 {% else %}
-                    Checked Out
+                    Unavailable
                 {% endif %}
             </td>
 
@@ -129,14 +140,19 @@
             <td>{{ book[3] }}</td>
 
             <td>
-                {% if book[2] > 0 %}
+                {% if book[0] in checked_books %}
+                    <button disabled>Checked Out</button>
+
+                {% elif book[2] > 0 %}
                     <form action="/checkout/{{ book[0] }}" method="POST">
                         <button type="submit">Checkout</button>
                     </form>
+
                 {% else %}
                     <button disabled>Unavailable</button>
                 {% endif %}
             </td>
+
         </tr>
         {% endfor %}
 

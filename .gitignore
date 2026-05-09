@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+*.db
+book_database
+usernames_pass_database

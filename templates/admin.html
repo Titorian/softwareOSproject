@@ -1,48 +1,63 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Librarian Panel</title>
+    <title>Staff Panel</title>
 
     <style>
-        body {
-            font-family: Arial;
-            background-color: #f4f6f8;
-        }
+        body { font-family: Arial; background:#f4f6f8; }
 
         .navbar {
-            background-color: #1e293b;
-            color: white;
-            padding: 15px;
-            display: flex;
-            justify-content: space-between;
+            background:#1e293b;
+            color:white;
+            padding:15px;
+            display:flex;
+            justify-content:space-between;
         }
 
         .navbar a {
-            color: white;
-            margin-left: 15px;
-            text-decoration: none;
+            color:white;
+            margin-left:15px;
+            text-decoration:none;
         }
 
         table {
-            width: 90%;
-            margin: 40px auto;
-            border-collapse: collapse;
-            background: white;
+            width:90%;
+            margin:30px auto;
+            border-collapse:collapse;
+            background:white;
         }
 
         th {
-            background: #1e293b;
-            color: white;
-            padding: 10px;
+            background:#1e293b;
+            color:white;
+            padding:10px;
         }
 
         td {
-            padding: 10px;
-            text-align: center;
+            padding:10px;
+            text-align:center;
         }
 
-        tr:nth-child(even) {
-            background: #f1f5f9;
+        form {
+            text-align:center;
+            margin:20px;
+        }
+
+        input {
+            padding:8px;
+            margin:5px;
+        }
+
+        button {
+            padding:6px 10px;
+            background:#2563eb;
+            color:white;
+            border:none;
+            cursor:pointer;
+        }
+
+        .delete {
+            background:red;
         }
     </style>
 </head>
@@ -50,12 +65,23 @@
 <body>
 
 <div class="navbar">
-    <div><strong>📚 Librarian Panel</strong></div>
+    <div><strong>📚 Staff Panel</strong></div>
     <div>
         <a href="/dashboard">User View</a>
         <a href="/logout">Logout</a>
     </div>
 </div>
+
+
+<form action="/add_book" method="POST">
+    <h3>Add Book</h3>
+    <input name="title" placeholder="Title" required>
+    <input name="author" placeholder="Author" required>
+    <input name="copies" type="number" placeholder="Copies" required>
+    <input name="genre" placeholder="Genre" required>
+    <button type="submit">Add Book</button>
+</form>
+
 
 <table>
 <tr>
@@ -64,6 +90,8 @@
     <th>Copies</th>
     <th>Genre</th>
     <th>Checked Out By</th>
+    <th>Last Checkout Time</th>
+    <th>Action</th>
 </tr>
 
 {% for r in records %}
@@ -72,13 +100,31 @@
     <td>{{ r[1] }}</td>
     <td>{{ r[2] }}</td>
     <td>{{ r[3] }}</td>
-<td>
-    {% if r[4] %}
-        {{ r[4] }}
-    {% else %}
-        Available
-    {% endif %}
-</td>
+
+    
+    <td>
+        {% if r[4] %}
+            {{ r[4] }}
+        {% else %}
+            Available
+        {% endif %}
+    </td>
+
+    
+    <td>
+        {% if r[5] %}
+            {{ r[5] }}
+        {% else %}
+            -
+        {% endif %}
+    </td>
+
+    
+    <td>
+        <form action="/delete_book/{{ r[0] }}" method="GET">
+            <button class="delete" type="submit">Delete</button>
+        </form>
+    </td>
 </tr>
 {% endfor %}
 

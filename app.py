@@ -1,29 +1,33 @@
+#1 Imports
 from flask import Flask, request, redirect, session, render_template
+from datetime import datetime
 import sqlite3
 import bcrypt
-import datetime
 import time
+import os
 
 app = Flask(__name__)
 app.secret_key = "simplekey"
 
-# Login Lock System
 login_attempts = {}
 LOCK_TIME = 60
 
-# Book Database
-def init_db():
-    import os
 
-    # reset database every time app starts
+#2 Setup databases (refreshes each run)
+def init_db():
+
     if os.path.exists("book_database.db"):
         os.remove("book_database.db")
+
+    if os.path.exists("usernames_pass_database.db"):
+        os.remove("usernames_pass_database.db")
 
     db = sqlite3.connect("book_database.db")
     cursor = db.cursor()
 
+    # Books table
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS books (
+    CREATE TABLE books (
         title TEXT,
         author TEXT,
         copies INTEGER,
@@ -31,30 +35,23 @@ def init_db():
     )
     """)
 
+    # Checkout table
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS login (
-        username TEXT,
-        password TEXT,
-        role TEXT
-    )
-    """)
-
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS checkout (
+    CREATE TABLE checkout (
         username TEXT,
         book TEXT
     )
     """)
 
+    # Checkout log (timestamp tracking)
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS checkout_log (
+    CREATE TABLE checkout_log (
         username TEXT,
         book TEXT,
-        timestamp TEXT
+        checkout_time TEXT
     )
     """)
 
-    # insert books
     books = [
         ("Shadow of the Moon", "Lena Carter", 12, "Fantasy"),
         ("Digital Fortress", "Aaron Blake", 5, "Thriller"),
@@ -75,42 +72,36 @@ def init_db():
     db.commit()
     db.close()
 
-# User Database
-def connect_db():
-    return sqlite3.connect("usernames_pass_database.db")
-
-def init_db():
-    db = connect_db()
+    # Users DB
+    db = sqlite3.connect("usernames_pass_database.db")
 
     db.execute("""
-    CREATE TABLE IF NOT EXISTS login(
+    CREATE TABLE login(
         username TEXT PRIMARY KEY,
         passwords TEXT,
         role TEXT
     )
     """)
 
-    # reset users every run
-    db.execute("DELETE FROM login")
-    db.commit()
-
     db.execute("INSERT INTO login VALUES (?, ?, ?)",
-        ("testuser", bcrypt.hashpw("test123".encode(), bcrypt.gensalt()).decode(), "user"))
-
-    db.execute("INSERT INTO login VALUES (?, ?, ?)",
-        ("admin", bcrypt.hashpw("admin123".encode(), bcrypt.gensalt()).decode(), "admin"))
+        ("admin", bcrypt.hashpw("Admin123".encode(), bcrypt.gensalt()).decode(), "staff"))
 
     db.commit()
     db.close()
 
-init_db()
 
-# Home
+#3 Connect user DB
+def connect_db():
+    return sqlite3.connect("usernames_pass_database.db")
+
+
+#4 Home
 @app.route("/")
 def home():
     return render_template("index.html")
 
-# Register
+
+#5 Register
 @app.route("/register", methods=["GET", "POST"])
 def register():
 
@@ -120,25 +111,8 @@ def register():
     username = request.form["username"]
     password = request.form["password"]
 
-    if not username or not password:
-        return render_template("register.html", error="Fields cannot be empty")
-
-    # PASSWORD VALIDATION (THIS IS THE FIX)
     if len(password) < 8:
-        return render_template("register.html",
-            error="Password must be at least 8 characters, including an uppercase, lowercase, and number"
-)
-    if not any(c.isupper() for c in password):
-        return render_template("register.html",
-            error="Password must include an uppercase letter")
-
-    if not any(c.islower() for c in password):
-        return render_template("register.html",
-            error="Password must include a lowercase letter")
-
-    if not any(c.isdigit() for c in password):
-        return render_template("register.html",
-            error="Password must include a number")
+        return render_template("register.html", error="Password must be 8+ characters, including uppercase, lowercase, and a number")
 
     hashed = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
@@ -149,56 +123,18 @@ def register():
         cursor.execute("INSERT INTO login VALUES (?, ?, ?)", (username, hashed, "user"))
         db.commit()
     except:
-        return render_template("register.html", error="Username already exists")
+        return render_template("register.html", error="Username exists")
 
     db.close()
     return redirect("/")
 
-# Forgot Password
-@app.route("/forgot", methods=["GET", "POST"])
-def forgot():
 
-    if request.method == "GET":
-        return render_template("forgot.html")
-
-    username = request.form["username"]
-    new_password = request.form["password"]
-
-    if not username or not new_password:
-        return render_template("forgot.html", error="Fill all fields")
-
-    hashed = bcrypt.hashpw(new_password.encode(), bcrypt.gensalt()).decode()
-
-    db = connect_db()
-    cursor = db.cursor()
-
-    cursor.execute("SELECT * FROM login WHERE username=?", (username,))
-    user = cursor.fetchone()
-
-    if not user:
-        db.close()
-        return render_template("forgot.html", error="User not found")
-
-    cursor.execute("UPDATE login SET passwords=? WHERE username=?", (hashed, username))
-    db.commit()
-    db.close()
-
-    return render_template("index.html", error="Password reset successful")
-
-# Login
+#6 Login
 @app.route("/login", methods=["POST"])
 def login():
 
     username = request.form["username"]
     password = request.form["password"]
-
-    # lock check BEFORE hitting DB
-    if username in login_attempts:
-        attempts, last_time = login_attempts[username]
-
-        if attempts >= 3 and (time.time() - last_time < LOCK_TIME):
-            return render_template("index.html",
-                error="Too many failed attempts. Try again in 1 minute or use Forgot Password.")
 
     db = connect_db()
     cursor = db.cursor()
@@ -210,62 +146,73 @@ def login():
     if not user:
         return render_template("index.html", error="User not found")
 
-    # WRONG PASSWORD LOGIC (THIS IS THE FIX)
     if not bcrypt.checkpw(password.encode(), user[1].encode()):
-
-        if username in login_attempts:
-            attempts, last_time = login_attempts[username]
-            login_attempts[username] = (attempts + 1, time.time())
-        else:
-            login_attempts[username] = (1, time.time())
-
-        # LOCK TRIGGER AFTER 3
-        if login_attempts[username][0] >= 3:
-            return render_template("index.html",
-                error="Too many failed attempts. Try again in 1 minute or use Forgot Password.")
-
-        return render_template("index.html", error="Incorrect password")
-
-    # SUCCESS → RESET ATTEMPTS
-    login_attempts.pop(username, None)
+        return render_template("index.html", error="Wrong password")
 
     session["user"] = username
     session["role"] = user[2]
 
     return redirect("/dashboard")
 
-# Dashboard with search
+
+#7 Forgot password
+@app.route("/forgot", methods=["GET", "POST"])
+def forgot():
+
+    if request.method == "GET":
+        return render_template("forgot.html")
+
+    username = request.form["username"]
+    new_password = request.form["password"]
+
+    if len(new_password) < 8:
+        return render_template("forgot.html", error="Password must be 8+")
+
+    db = connect_db()
+    cursor = db.cursor()
+
+    hashed = bcrypt.hashpw(new_password.encode(), bcrypt.gensalt()).decode()
+
+    cursor.execute("UPDATE login SET passwords=? WHERE username=?", (hashed, username))
+    db.commit()
+    db.close()
+
+    return redirect("/")
+
+
+#8 Dashboard 
 @app.route("/dashboard")
 def dashboard():
 
     if "user" not in session:
-        return "Not logged in"
-
-    search = request.args.get("search")
+        return redirect("/")
 
     db = sqlite3.connect("book_database.db")
     cursor = db.cursor()
 
+    search = request.args.get("search")
+
     if search:
-        cursor.execute("""
-        SELECT * FROM books
-        WHERE title LIKE ? OR author LIKE ? OR genre LIKE ?
-        """, (f"%{search}%", f"%{search}%", f"%{search}%"))
+        cursor.execute("SELECT * FROM books WHERE title LIKE ?", ('%' + search + '%',))
     else:
         cursor.execute("SELECT * FROM books")
 
     books = cursor.fetchall()
 
     cursor.execute("SELECT book FROM checkout WHERE username=?", (session["user"],))
-    checked_out = [row[0] for row in cursor.fetchall()]
+    checked_books = [row[0] for row in cursor.fetchall()]
 
     db.close()
 
-    return render_template("books.html", books=books, checked_out=checked_out)
+    return render_template("books.html", books=books, checked_books=checked_books)
 
-# Checkout
+
+#9 Checkout
 @app.route("/checkout/<book>", methods=["POST"])
 def checkout(book):
+
+    if "user" not in session:
+        return redirect("/")
 
     db = sqlite3.connect("book_database.db")
     cursor = db.cursor()
@@ -276,44 +223,42 @@ def checkout(book):
     if result and result[0] > 0:
         cursor.execute("UPDATE books SET copies = copies - 1 WHERE title=?", (book,))
         cursor.execute("INSERT INTO checkout VALUES (?, ?)", (session["user"], book))
-        cursor.execute("INSERT INTO checkout_log VALUES (?, ?, ?)",
-        (session["user"], book, str(datetime.datetime.now())))
+
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        cursor.execute(
+            "INSERT INTO checkout_log VALUES (?, ?, ?)",
+            (session["user"], book, current_time)
+        )
+
         db.commit()
 
     db.close()
     return redirect("/dashboard")
 
-# Return
-@app.route("/return/<book>", methods=["POST"])
-def return_book(book):
 
-    db = sqlite3.connect("book_database.db")
-    cursor = db.cursor()
+#10 Staff panel
+@app.route("/staff")
+def staff():
 
-    cursor.execute("DELETE FROM checkout WHERE username=? AND book=?", (session["user"], book))
-    cursor.execute("UPDATE books SET copies = copies + 1 WHERE title=?", (book,))
-
-    db.commit()
-    db.close()
-
-    return redirect("/dashboard")
-
-# Admin
-@app.route("/admin")
-def admin():
-
-    if "user" not in session or session.get("role") != "admin":
+    if "user" not in session or session.get("role") != "staff":
         return redirect("/")
 
     db = sqlite3.connect("book_database.db")
     cursor = db.cursor()
 
     cursor.execute("""
-        SELECT b.title, b.author, b.copies, b.genre,
-        GROUP_CONCAT(c.username)
-        FROM books b
-        LEFT JOIN checkout c ON b.title = c.book
-        GROUP BY b.title
+    SELECT
+        b.title,
+        b.author,
+        b.copies,
+        b.genre,
+        GROUP_CONCAT(c.username),
+        MAX(cl.checkout_time)
+    FROM books b
+    LEFT JOIN checkout c ON b.title = c.book
+    LEFT JOIN checkout_log cl ON b.title = cl.book
+    GROUP BY b.title
     """)
 
     records = cursor.fetchall()
@@ -321,12 +266,56 @@ def admin():
 
     return render_template("admin.html", records=records)
 
-# Logout
+
+#11 Add book
+@app.route("/add_book", methods=["POST"])
+def add_book():
+
+    if "user" not in session or session.get("role") != "staff":
+        return redirect("/")
+
+    db = sqlite3.connect("book_database.db")
+    cursor = db.cursor()
+
+    cursor.execute(
+        "INSERT INTO books VALUES (?, ?, ?, ?)",
+        (request.form["title"], request.form["author"], request.form["copies"], request.form["genre"])
+    )
+
+    db.commit()
+    db.close()
+
+    return redirect("/staff")
+
+
+#12 Delete book
+@app.route("/delete_book/<title>")
+def delete_book(title):
+
+    if "user" not in session or session.get("role") != "staff":
+        return redirect("/")
+
+    db = sqlite3.connect("book_database.db")
+    cursor = db.cursor()
+
+    cursor.execute("DELETE FROM books WHERE title=?", (title,))
+    cursor.execute("DELETE FROM checkout WHERE book=?", (title,))
+    cursor.execute("DELETE FROM checkout_log WHERE book=?", (title,))
+
+    db.commit()
+    db.close()
+
+    return redirect("/staff")
+
+
+#13 Logout
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect("/")
 
+
+#14 Run app
 if __name__ == "__main__":
     init_db()
     app.run(debug=True)
