@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Library Dashboard</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial;
+            background-color: #f4f6f8;
+        }
+
+        .navbar {
+            background-color: #1e293b;
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            margin-left: 15px;
+        }
+
+        .container {
+            padding: 30px;
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        table {
+            width: 80%;
+            margin: auto;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th {
+            background-color: #1e293b;
+            color: white;
+            padding: 12px;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            text-align: center;
+        }
+
+        tr:hover {
+            background-color: #f1f5f9;
+        }
+
+        .search {
+            display: block;
+            margin: 20px auto;
+            padding: 10px;
+            width: 300px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            padding: 6px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #2563eb;
+            color: white;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .disabled-row {
+            opacity: 0.5;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="navbar">
+    <div><strong>📚 Library System</strong></div>
+    <div>
+        <a href="/">Login</a>
+        <a href="/dashboard">Books</a>
+        <a href="/staff">Staff</a>
+        <a href="/logout">Logout</a>
+    </div>
+</div>
+
+<div class="container">
+
+<h2>Available Books</h2>
+
+{% if books|length == 0 %}
+    <p style="text-align:center;">No books found.</p>
+{% endif %}
+
+<form method="GET" action="/dashboard">
+    <input class="search" type="text" name="search" placeholder="Search books...">
+</form>
+
+    <table>
+        <tr>
+            <th>Title</th>
+            <th>Author</th>
+            <th>Status</th>
+            <th>Copies</th>
+            <th>Genre</th>
+            <th>Action</th>
+        </tr>
+
+        {% for book in books %}
+        <tr class="{% if book[0] in checked_books %}disabled-row{% endif %}">
+
+            <td>{{ book[0] }}</td>
+            <td>{{ book[1] }}</td>
+
+            <td>
+                {% if book[0] in checked_books %}
+                    Checked Out
+                {% elif book[2] > 0 %}
+                    Available
+                {% else %}
+                    Unavailable
+                {% endif %}
+            </td>
+
+            <td>{{ book[2] }}</td>
+            <td>{{ book[3] }}</td>
+
+            <td>
+                {% if book[0] in checked_books %}
+                    <button disabled>Checked Out</button>
+
+                {% elif book[2] > 0 %}
+                    <form action="/checkout/{{ book[0] }}" method="POST">
+                        <button type="submit">Checkout</button>
+                    </form>
+
+                {% else %}
+                    <button disabled>Unavailable</button>
+                {% endif %}
+            </td>
+
+        </tr>
+        {% endfor %}
+
+    </table>
+
+</div>
+
+</body>
+</html>

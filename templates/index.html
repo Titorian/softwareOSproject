@@ -10,7 +10,6 @@
             background-color: #f4f6f8;
         }
 
-        /* NAVBAR */
         .navbar {
             background-color: #1e293b;
             color: white;
@@ -19,7 +18,6 @@
             font-size: 20px;
         }
 
-        /* LOGIN BOX */
         .login-container {
             display: flex;
             justify-content: center;
@@ -32,6 +30,7 @@
             border-radius: 10px;
             width: 300px;
             text-align: center;
+            box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
         }
 
         input {
@@ -59,29 +58,45 @@
             text-decoration: none;
         }
 
+        .error {
+            color: red;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 
 <body>
 
-    <div class="navbar">
-        📚 Library System
-    </div>
+<div class="navbar">
+    📚 Library System
+</div>
 
     <div class="login-container">
         <form action="/login" method="POST">
             <h2>Login</h2>
+<div class="login-container">
+<form action="/login" method="POST">
 
-            <input type="text" name="username" placeholder="Username" required>
+<h2>Login</h2>
 
-            <input type="password" name="password" placeholder="Password" required>
+{% if error %}
+<p class="error">{{ error }}</p>
 
-            <button type="submit">Login</button>
+{% if "Too many" in error or "Incorrect" in error %}
+<a href="/forgot">Forgot Password?</a>
+{% endif %}
 
-            <a href="register.html">Create an account</a>
-            <a href="books.html">Browse Books</a>
-        </form>
-    </div>
+{% endif %}
+
+<input type="text" name="username" placeholder="Username">
+<input type="password" name="password" placeholder="Password">
+
+<button type="submit">Login</button>
+
+<a href="/register">Create an account</a>
+
+</form>
+</div>
 
 </body>
 </html>
