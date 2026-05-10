@@ -7,7 +7,7 @@ import time
 from bookdata import Books, createbook, get_connection, get_books
 from database import Accounts, get_connection2, passwordtohash
 
-#-------Login Database--------------------------------------------------
+#Login Database
 conn2 = get_connection2()
 cursor2 = conn2.cursor()
 cursor2.execute("""CREATE TABLE IF NOT EXISTS
@@ -39,9 +39,8 @@ for login in logins:
 
 conn2.commit()
 conn2.close()
-#------------------------------------------------------------------------
 
-#///////////////// BOOKS Creation //////////////////////////////////
+#BOOKS Creation
 
 conn = get_connection()
 cursor = conn.cursor()
@@ -90,7 +89,7 @@ for book in books:
 conn.commit()
 conn.close()
 
-#///////////////////BOOKS Creation//////////////////////////////////////////////
+#BOOKS Creation
 
 #first create app
 app = Flask(__name__)
@@ -103,7 +102,7 @@ app.secret_key = "simplekey"
 def connect_db():
     return sqlite3.connect("usernames_pass_database.db")
 def connect_bookdb():
-    return sqlite3.connect("book_database")
+    return sqlite3.connect("book_database.db")
 
 
 #pass validation
@@ -179,7 +178,7 @@ def login():
 
         stored_password = user[1]
 
-        if bcrypt.checkpw(password.encode(), stored_password):
+        if bcrypt.checkpw(password.encode(), stored_password.encode() if isinstance(stored_password, str) else stored_password):
 
             # reset attempts
             login_attempts[username] = (0, time.time())
@@ -212,8 +211,11 @@ def login():
 
 
 #register
-@app.route("/register", methods=["POST"])
+@app.route("/register", methods=["GET", "POST"])
 def register():
+    
+        if request.method == "GET":
+        return render_template("register.html")
 
     #user input
     username = request.form["username"]
@@ -236,7 +238,7 @@ def register():
 
     #user back to login page
     return redirect("/")
-#---------------------Admin functions
+#Admin functions
 #user account screens only the librarian can see
 @app.route("/accounts")
 def accounts():
@@ -273,7 +275,7 @@ def libhome():
 
     db.close()
     return render_template("libraryhome.html", books=books, checkouts=checkouts)
-#--------------ADmin Functions---------------------------------------------------
+#ADmin Functions
 
 #dashboard for general view
 @app.route("/dashboard")
@@ -289,7 +291,7 @@ def dashboard():
 
     return render_template("books.html", books=books)
 
-#---------------USER FUNCTIONALITY---------------------------------------------------------
+#USER FUNCTIONALITY
 #once logged in can checkout books
 @app.route("/selection")
 def selection():
@@ -391,7 +393,7 @@ def return_book(title):
     db.commit()
     db.close()
     return redirect("/home")  # ← back to home page
-#------------------------USER FUNCTIONALITY--------------------------------------------------------
+#USER FUNCTIONALITY
 
 @app.route("/logout")
 def logout():
