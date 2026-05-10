@@ -101,7 +101,7 @@ app.secret_key = "simplekey"
 
 #connects to TJ's code
 def connect_db():
-    return sqlite3.connect("usernames_pass_database")
+    return sqlite3.connect("usernames_pass_database.db")
 def connect_bookdb():
     return sqlite3.connect("book_database")
 
@@ -121,26 +121,44 @@ def is_strong_password(password):
 
 #login LockSYstem
 login_attempts = {}
-LOCK_TIME = 60  
+LOCK_TIME = 300  
 
 
 #login
+#login
 @app.route("/login", methods=["GET", "POST"])
 def login():
+
     if request.method == "GET":
         return render_template("index.html")
+
     username = request.form["username"]
     password = request.form["password"]
 
     if not username or not password:
-        return "Invalid input"
+        return render_template(
+            "index.html",
+            error="Please enter username and password."
+        )
 
-    #lockFeature(Honors Credit)
+    # check lockout
     if username in login_attempts:
+
         attempts, last_attempt = login_attempts[username]
 
         if attempts >= 3 and time.time() - last_attempt < LOCK_TIME:
-            return "Too many failed attempts. Try again later."
+
+            remaining = int(
+                LOCK_TIME - (time.time() - last_attempt)
+            )
+
+            minutes = remaining // 60
+            seconds = remaining % 60
+
+            return render_template(
+                "index.html",
+                error=f"Too many failed attempts. Try again in {minutes}m {seconds}s."
+            )
 
     db2 = connect_db()
 
@@ -148,42 +166,49 @@ def login():
         "SELECT * FROM login WHERE username = ?",
         (username,)
     ).fetchone()
-    print("USER FOUND:", user)          # is the user even in the DB?
-    print("ENTERED PASSWORD:", password)
-    print("STORED PASSWORD:", user[1] if user else "no user")
-    if user:
-        stored_password = user[1]
 
-        login_success = False
-    if username =="test" and password=="test":
+    db2.close()
+
+    # admin bypass
+    if username == "test" and password == "test":
+        session["user"] = username
         return redirect("/libhome")
 
+    # valid user
+    if user:
 
+        stored_password = user[1]
 
-    #checks if the passwords match
-        if user:
-            stored_password = user[1]
-            # bcrypt.checkpw handles the comparison — just pass plain password
-            if bcrypt.checkpw(password.encode(), stored_password):
-                session["user"] = username
-                return redirect("/selection")
+        if bcrypt.checkpw(password.encode(), stored_password):
 
-        return "Login failed"
-
-        if login_success:
-            session["user"] = username
-            session["role"] = "user"
-
-            # reset attempts after 60sec time
+            # reset attempts
             login_attempts[username] = (0, time.time())
 
-            return redirect("/userhome.html")
+            session["user"] = username
 
-    #failedLogin
+            return redirect("/selection")
+
+    # failed login
     attempts, _ = login_attempts.get(username, (0, 0))
-    login_attempts[username] = (attempts + 1, time.time())
 
-    return "Login failed"
+    login_attempts[username] = (
+        attempts + 1,
+        time.time()
+    )
+
+    remaining_attempts = 3 - (attempts + 1)
+
+    if remaining_attempts > 0:
+
+        return render_template(
+            "index.html",
+            error=f"Incorrect login. {remaining_attempts} attempts remaining."
+        )
+
+    return render_template(
+        "index.html",
+        error="Too many failed attempts. Account locked for 5 minutes."
+    )
 
 
 #register
@@ -202,9 +227,9 @@ def register():
 
     #new user in database
     db2.execute(
-        "INSERT INTO users (username, password, role) VALUES (?, ?, ?)",
-        (username, hashed_password, "user")  # default role = user
-    )
+    "INSERT INTO login (username, passwords) VALUES (?, ?)",
+    (username, hashed_password)
+)
 
     #save
     db2.commit()
