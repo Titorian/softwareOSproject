@@ -130,7 +130,7 @@ def login():
     if request.method == "GET":
         return render_template("index.html")
     username = request.form["username"]
-    password = request.form["passwords"]
+    password = request.form["password"]
 
     if not username or not password:
         return "Invalid input"
@@ -192,7 +192,7 @@ def register():
 
     #user input
     username = request.form["username"]
-    password = request.form["passwords"]
+    password = request.form["password"]
 
     #hash the password
     hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
