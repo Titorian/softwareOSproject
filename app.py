@@ -9,7 +9,7 @@ import os
 
 app = Flask(__name__)
 app.secret_key = "simplekey"
-
+#-------------------Database Creation----------------------------------------------------------------------------
 def connect_db():
     return sqlite3.connect("usernmaes_pass_database")
 
@@ -114,7 +114,7 @@ def init_db():
 def connect_db():
     return sqlite3.connect("usernames_pass_database.db")
 
-
+#--------------Database Creation------------------------------------------------------------------------------------------------
 #4 Home
 @app.route("/")
 def home():
