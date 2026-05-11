@@ -82,9 +82,29 @@ def init_db():
         role TEXT
     )
     """)
+     # staff accounts
+    staff_accounts = [
+        ("admin",   "Admin123"),
+    ]
 
-    db.execute("INSERT INTO login VALUES (?, ?, ?)",
-        ("admin", bcrypt.hashpw("Admin123".encode(), bcrypt.gensalt()).decode(), "staff"))
+
+
+    for username, password in staff_accounts:
+        db.execute("INSERT INTO login VALUES (?, ?, ?)",
+            (username, bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode(), "staff"))
+        
+       # regular user accounts
+    user_accounts = [
+        ("tim101",      "ilikecats22"),
+        ("jon3",        "test12"),
+        ("catwomen",    "iamcool10"),
+        ("heyguys21",   "password4"),
+        ("iluvreading", "doggo8")
+    ]
+    for username, password in user_accounts:
+        db.execute("INSERT INTO login VALUES (?, ?, ?)",
+            (username, bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode(), "user"))
+
 
     db.commit()
     db.close()
@@ -103,6 +123,21 @@ def home():
 
     #failedLogin
     login_attempts[username] = (attempts + 1, time.time())
+
+
+#can browse but can not checkout books
+@app.route("/browse")
+def browse():
+    db = sqlite3.connect("book_database.db")  # ← fixed
+    cursor = db.cursor()
+
+    cursor.execute("SELECT * FROM books")
+    books = cursor.fetchall()
+   
+
+    db.close()
+
+    return render_template("books.html", books=books)
 
 #5 Register
 @app.route("/register", methods=["GET", "POST"])
@@ -154,8 +189,11 @@ def login():
 
     session["user"] = username
     session["role"] = user[2]
+    if user[2] == "staff":
+        return redirect("/staff")   # ← librarian/admin goes here
+    else:
+        return redirect("/dashboard") 
 
-    return redirect("/dashboard")
 
 
 #7 Forgot password
@@ -181,6 +219,48 @@ def forgot():
     db.close()
 
     return redirect("/")
+#-----------------User Functions-------------------------------------------------
+@app.route("/home")
+def userhome():                  
+    if "user" not in session:
+        return redirect("/")
+
+    username = session["user"]
+    db = sqlite3.connect("book_database.db")
+    cursor = db.cursor()
+
+    cursor.execute(
+        "SELECT book FROM checkout WHERE username = ?", 
+        (username,)
+    )
+    checked_out = [row[0] for row in cursor.fetchall()]
+
+    db.close()
+    return render_template("userhome.html", username=username, checked_out=checked_out)
+
+
+#allows user to return books
+@app.route("/return/<book>", methods=["POST"])
+def return_book(book):
+    if "user" not in session:
+        return redirect("/")
+
+    username = session["user"]
+    db = sqlite3.connect("book_database.db")  # ← fixed, no connect_bookdb()
+    cursor = db.cursor()
+
+    cursor.execute("UPDATE books SET copies = copies + 1 WHERE title=?", (book,))  # ← title not titles
+    cursor.execute(
+        "DELETE FROM checkout WHERE username=? AND book=?",  # ← checkout not checkouts, book not title
+        (username, book)
+    )
+
+    db.commit()
+    db.close()
+    return redirect("/home")
+
+
+
 
 
 #8 Dashboard 
@@ -191,6 +271,7 @@ def dashboard():
 
     db = sqlite3.connect("book_database.db")
     cursor = db.cursor()
+    username = session["user"]
 
     search = request.args.get("search")
 
@@ -200,16 +281,16 @@ def dashboard():
         cursor.execute("SELECT * FROM books")
 
     books = cursor.fetchall()
+   
 
     cursor.execute("SELECT book FROM checkout WHERE username=?", (session["user"],))
     checked_books = [row[0] for row in cursor.fetchall()]
 
     db.close()
 
-    return render_template("books.html", books=books, checked_books=checked_books)
+    return render_template("userbooks.html", books=books,username=username, checked_books=checked_books)
 
 
-#9 Checkout
 @app.route("/checkout/<book>", methods=["POST"])
 def checkout(book):
 
@@ -237,9 +318,36 @@ def checkout(book):
 
     db.close()
     return redirect("/dashboard")
+#--------------------------User Functions--------------------------------------------------------------
 
 
-#10 Staff panel
+
+
+#---------------- Admin Stuff-----------------------------------------------------------------
+
+#10 can check user accounts
+@app.route("/accounts")
+def accounts():
+
+    if "user" not in session or session.get("role") != "staff":
+        return redirect("/")
+
+    db2 = connect_db()
+    cursor2 = db2.cursor()
+    cursor2.execute("SELECT * FROM login")
+    logins = cursor2.fetchall()
+    db2.close()
+
+    db = sqlite3.connect("book_database.db")
+    cursor = db.cursor()
+    # pull from checkout_log so we get the timestamp too
+    cursor.execute("SELECT username, book, checkout_time FROM checkout_log")
+    checkouts = cursor.fetchall()
+    db.close()
+
+    return render_template("admin.html", logins=logins, checkouts=checkouts)
+
+#can modify books
 @app.route("/staff")
 def staff():
 
@@ -249,24 +357,12 @@ def staff():
     db = sqlite3.connect("book_database.db")
     cursor = db.cursor()
 
-    cursor.execute("""
-    SELECT
-        b.title,
-        b.author,
-        b.copies,
-        b.genre,
-        GROUP_CONCAT(c.username),
-        MAX(cl.checkout_time)
-    FROM books b
-    LEFT JOIN checkout c ON b.title = c.book
-    LEFT JOIN checkout_log cl ON b.title = cl.book
-    GROUP BY b.title
-    """)
+    cursor.execute("SELECT title, author, copies, genre FROM books")
 
     records = cursor.fetchall()
     db.close()
 
-    return render_template("admin.html", records=records)
+    return render_template("modifylib.html", records=records)
 
 
 #11 Add book

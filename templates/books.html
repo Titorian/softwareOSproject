@@ -91,9 +91,8 @@
 <div class="navbar">
     <div><strong>📚 Library System</strong></div>
     <div>
-        <a href="/">Login</a>
         <a href="/dashboard">Books</a>
-        <a href="/staff">Staff</a>
+        <a href="/">Home</a>
         <a href="/logout">Logout</a>
     </div>
 </div>
@@ -117,7 +116,6 @@
             <th>Status</th>
             <th>Copies</th>
             <th>Genre</th>
-            <th>Action</th>
         </tr>
 
         {% for book in books %}
@@ -139,19 +137,6 @@
             <td>{{ book[2] }}</td>
             <td>{{ book[3] }}</td>
 
-            <td>
-                {% if book[0] in checked_books %}
-                    <button disabled>Checked Out</button>
-
-                {% elif book[2] > 0 %}
-                    <form action="/checkout/{{ book[0] }}" method="POST">
-                        <button type="submit">Checkout</button>
-                    </form>
-
-                {% else %}
-                    <button disabled>Unavailable</button>
-                {% endif %}
-            </td>
 
         </tr>
         {% endfor %}

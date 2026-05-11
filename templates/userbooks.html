@@ -95,60 +95,69 @@
 
     <!-- NAVBAR -->
     <div class="navbar">
-        <div><strong>📚 Staff Panel</strong></div>
+         <div><strong>📚 Library System</strong> &nbsp;&nbsp;|&nbsp;&nbsp; {{ username }}</div>
+         
         <div>
-            <a href="/staff">Modify Library</a>
-            <a href="/accounts">Check User Accounts</a>
+            <a href="/home">Home</a>
+            <a href="/dashboard">Books</a>
             <a href="/logout">Logout</a>
-            
         </div>
     </div>
 
     <!-- CONTENT -->
     <div class="container">
 
-        <h2>User Accounts</h2>
+        <h2>Available Books</h2>
+
+        <!-- SEARCH BAR -->
+        <input class="search" type="text" placeholder="Search books...">
 
         <!-- TABLE -->
-      <table>
-    <tr>
-        <th>Username</th>
-        <th>Password</th>
-        <th>Checked Out Books</th>
-        <th>Checkout Time</th>  <!-- ← add this -->
-    </tr>
+        <table>
+            <tr>
+                <th>Book Title</th>
+                <th>Author</th>
+                <th>Status</th>
+                <th>Num of Copies</th>
+                <th>Genre</th>
+                <th>Checkout</th>
+            </tr>
 
-    {% for login in logins %}
-    <tr>
-        <td>{{ login[0] }}</td>
-        <td>{{ login[1] }}</td>
-        <td>
-            {% set found = [] %}
-            {% for checkout in checkouts %}
-                {% if checkout[0] == login[0] %}
-                    {{ checkout[1] }}<br>
-                    {% set _ = found.append(1) %}
-                {% endif %}
-            {% endfor %}
-            {% if not found %}
-                None
-            {% endif %}
-        </td>
-        <td>
-            {% set found = [] %}
-            {% for checkout in checkouts %}
-                {% if checkout[0] == login[0] %}
-                    {{ checkout[2] }}<br>
-                    {% set _ = found.append(1) %}
-                {% endif %}
-            {% endfor %}
-            {% if not found %}
-                —
-            {% endif %}
-        </td>
-    </tr>
-    {% endfor %}
-</table>
+           {% for book in books %}
+<tr>
+    <td>{{ book[0] }}</td>
+    <td>{{ book[1] }}</td>
+
+    <td>
+        {% if book[2] > 0 %}
+            Available
+        {% else %}
+            Checked Out
+        {% endif %}
+    </td>
+
+    <td>{{ book[2] }}</td>   <!-- number of copies -->
+    <td>{{ book[3] }}</td>   <!-- genre -->
+
+     <td>
+        {% if book[0] in checked_books %}
+            <!-- user already has this book - greyed out -->
+            <button disabled style="background-color: #ccc; cursor: not-allowed;">Already Checkout</button>
+        {% elif book[2] > 0 %}
+            <!-- available -->
+            <form action="/checkout/{{ book[0] }}" method="POST">
+                <button class="checkout" type="submit">Checkout</button>
+            </form>
+        {% else %}
+            <!-- no copies left -->
+            <button disabled style="background-color: #ccc; cursor: not-allowed;">Unavailable</button>
+        {% endif %}
+</td>
+</tr>
+{% endfor %}
+
+        </table>
+
     </div>
 
 </body>
